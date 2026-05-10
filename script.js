@@ -1,43 +1,108 @@
+/* Estrutura Principal
+gameLoop()
+ ├── update()
+ │     ├── moveSnake()
+ │     ├── checkCollision()
+ │     ├── checkFood()
+ │     └── checkBonusFood()
+ │
+ └── render()
+       ├── drawBackground()
+       ├── drawSnake()
+       ├── drawFood()
+       ├── drawBonusFood()
+       └── drawScore()
+*/
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 const box = 20; // Tamanho de cada bloco
 let snake = [{ x: 9 * box, y: 9 * box }]; // Corpo inicial da cobra
 let direction = 'RIGHT'; // Direção inicial
-let food = { 
-  x: Math.floor(Math.random() * 20) * box, 
-  y: Math.floor(Math.random() * 20) * box 
-}; // Posição inicial da comida
 let bonusFood = null; // Posição do bônus (nulo inicialmente)
 let foodCounter = 0; // Contador de comidas normais
 let score = 0; // Pontuação inicial
 let speed = 100; // Velocidade inicial em milissegundos
-let game = setInterval(drawGame, speed); // Define o intervalo inicial
+let game = setInterval(gameLoop, speed);
+let food = foodRandomPosition();
 
-function drawGame() {
-  // Fundo preto
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+let aiEnabled = true; // Integração IA
 
-  // Desenhando a cobra
-  snake.forEach((segment, index) => {
-    ctx.fillStyle = index === 0 ? 'blue' : 'lime'; // Cabeça azul, corpo verde
-    ctx.fillRect(segment.x, segment.y, box, box);
-  });
+function gameLoop() {
+  update();
+  render();
+}
 
-  // Desenhando a comida normal
-  ctx.fillStyle = 'red';
-  ctx.fillRect(food.x, food.y, box, box);
+function update() {
 
-  // Desenhando o bônus, se existir
-  if (bonusFood) {
-    ctx.fillStyle = 'gold';
-    ctx.beginPath();
-    ctx.arc(bonusFood.x + box / 2, bonusFood.y + box / 2, box / 2, 0, Math.PI * 2);
-    ctx.fill();
+  if (aiEnabled) {
+    aiMove();
   }
 
-  // Movendo a cobra
+  moveSnake();
+  checkCollision();
+  checkFood();
+  checkBonusFood();
+}
+
+function render() {
+  drawBackground();
+  drawSnake();
+  drawFood();
+  drawBonusFood();
+  drawScore();
+}
+
+function drawBackground() {
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawSnake() {
+  snake.forEach((segment, index) => {
+    ctx.fillStyle = index === 0 ? 'blue' : 'lime';
+
+    ctx.fillRect(
+      segment.x + 1,
+      segment.y + 1,
+      box - 2,
+      box - 2
+    );
+  });
+}
+
+function drawFood() {
+  ctx.fillStyle = 'red';
+  ctx.fillRect(food.x, food.y, box, box);
+}
+
+function drawBonusFood() {
+  if (!bonusFood) return;
+
+  ctx.fillStyle = 'gold';
+
+  ctx.beginPath();
+
+  ctx.arc(
+    bonusFood.x + box / 2,
+    bonusFood.y + box / 2,
+    box / 2,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+}
+
+function drawScore() {
+  ctx.fillStyle = 'white';
+  ctx.font = '10px Arial';
+  ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
+function moveSnake() {
+
   let head = { ...snake[0] };
 
   if (direction === 'LEFT') head.x -= box;
@@ -45,64 +110,132 @@ function drawGame() {
   if (direction === 'RIGHT') head.x += box;
   if (direction === 'DOWN') head.y += box;
 
-  // Fazendo a cobra atravessar as bordas
+  // atravessar parede
   if (head.x < 0) head.x = canvas.width - box;
   if (head.x >= canvas.width) head.x = 0;
   if (head.y < 0) head.y = canvas.height - box;
   if (head.y >= canvas.height) head.y = 0;
 
-  // Verificando colisão com o próprio corpo
-  if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+  snake.unshift(head);
+}
+
+function checkCollision() {
+
+  const head = snake[0];
+
+  if (
+    snake
+      .slice(1)
+      .some(segment =>
+        segment.x === head.x &&
+        segment.y === head.y
+      )
+  ) {
     clearInterval(game);
     alert('Game Over!');
   }
+}
 
-  // Comendo a comida normal
+function checkFood() {
+
+  const head = snake[0];
+
   if (head.x === food.x && head.y === food.y) {
-    food = { 
-      x: Math.floor(Math.random() * 20) * box, 
-      y: Math.floor(Math.random() * 20) * box 
-    };
+
+    food = foodRandomPosition();
+
     score++;
     foodCounter++;
 
-    // Gerar bônus a cada 5 comidas
     if (foodCounter === 5) {
-      bonusFood = { 
-        x: Math.floor(Math.random() * 20) * box, 
-        y: Math.floor(Math.random() * 20) * box 
-      };
-      foodCounter = 0; // Resetar o contador
+      bonusFood = foodRandomPosition();
+      foodCounter = 0;
     }
+
   } else {
     snake.pop();
   }
+}
 
-  // Comendo o bônus
-  if (bonusFood && head.x === bonusFood.x && head.y === bonusFood.y) {
-    score += 5; // Adiciona 5 pontos
-    bonusFood = null; // Remove o bônus
+function checkBonusFood() {
 
-    // Cresce o corpo da cobra em 5 segmentos
+  const head = snake[0];
+
+  if (
+    bonusFood &&
+    head.x === bonusFood.x &&
+    head.y === bonusFood.y
+  ) {
+
+    score += 5;
+
+    bonusFood = null;
+
     for (let i = 0; i < 5; i++) {
       snake.push({ ...snake[snake.length - 1] });
     }
 
-    // Reduz a velocidade em 10%
     speed *= 0.9;
-    if (speed < 50) speed = 50; // Velocidade mínima de 50ms
 
-    // Reinicia o jogo com a nova velocidade
+    if (speed < 80) speed = 80;
+
     clearInterval(game);
-    game = setInterval(drawGame, speed);
+
+    game = setInterval(gameLoop, speed);
+  }
+}
+
+function foodRandomPosition() {
+  let position;
+
+  do {
+    position = {
+      x: Math.floor(Math.random() * 20) * box,
+      y: Math.floor(Math.random() * 20) * box
+    };
+  } while (
+    snake.some(segment =>
+      segment.x === position.x &&
+      segment.y === position.y
+    )
+  );
+
+  return position;
+}
+
+function aiMove() {
+
+  const head = snake[0];
+
+  // Distâncias
+  const dx = food.x - head.x;
+  const dy = food.y - head.y;
+
+  // Prioriza eixo horizontal
+  if (Math.abs(dx) > Math.abs(dy)) {
+
+    if (dx > 0 && direction !== 'LEFT') {
+      direction = 'RIGHT';
+    }
+
+    else if (dx < 0 && direction !== 'RIGHT') {
+      direction = 'LEFT';
+    }
+
   }
 
-  snake.unshift(head);
+  // Prioriza eixo vertical
+  else {
 
-  // Exibindo o placar
-  ctx.fillStyle = 'white';
-  ctx.font = '20px Arial';
-  ctx.fillText(`Score: ${score}`, 10, 20);
+    if (dy > 0 && direction !== 'UP') {
+      direction = 'DOWN';
+    }
+
+    else if (dy < 0 && direction !== 'DOWN') {
+      direction = 'UP';
+    }
+
+  }
 }
 
 // Controlando a direção com o teclado
