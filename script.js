@@ -203,39 +203,95 @@ function foodRandomPosition() {
   return position;
 }
 
+function willCollide(x, y) {
+
+  return snake.some(segment =>
+    segment.x === x &&
+    segment.y === y
+  );
+}
+
 function aiMove() {
 
   const head = snake[0];
 
-  // Distâncias
-  const dx = food.x - head.x;
-  const dy = food.y - head.y;
+  const moves = [
+    {
+      dir: 'UP',
+      x: head.x,
+      y: head.y - box
+    },
 
-  // Prioriza eixo horizontal
-  if (Math.abs(dx) > Math.abs(dy)) {
+    {
+      dir: 'DOWN',
+      x: head.x,
+      y: head.y + box
+    },
 
-    if (dx > 0 && direction !== 'LEFT') {
-      direction = 'RIGHT';
+    {
+      dir: 'LEFT',
+      x: head.x - box,
+      y: head.y
+    },
+
+    {
+      dir: 'RIGHT',
+      x: head.x + box,
+      y: head.y
+    }
+  ];
+
+  // Evita voltar pra trás
+  const opposite = {
+    UP: 'DOWN',
+    DOWN: 'UP',
+    LEFT: 'RIGHT',
+    RIGHT: 'LEFT'
+  };
+
+  // Filtra movimentos válidos
+  const safeMoves = moves.filter(move => {
+
+    // Não pode voltar
+    if (opposite[direction] === move.dir) {
+      return false;
     }
 
-    else if (dx < 0 && direction !== 'RIGHT') {
-      direction = 'LEFT';
-    }
+    // Teleporte das paredes
+    let testX = move.x;
+    let testY = move.y;
 
+    if (testX < 0) testX = canvas.width - box;
+    if (testX >= canvas.width) testX = 0;
+
+    if (testY < 0) testY = canvas.height - box;
+    if (testY >= canvas.height) testY = 0;
+
+    // Verifica colisão
+    return !willCollide(testX, testY);
+  });
+
+  // Se não houver saída
+  if (safeMoves.length === 0) {
+    return;
   }
 
-  // Prioriza eixo vertical
-  else {
+  // Ordena por distância até comida
+  safeMoves.sort((a, b) => {
 
-    if (dy > 0 && direction !== 'UP') {
-      direction = 'DOWN';
-    }
+    const distA =
+      Math.abs(food.x - a.x) +
+      Math.abs(food.y - a.y);
 
-    else if (dy < 0 && direction !== 'DOWN') {
-      direction = 'UP';
-    }
+    const distB =
+      Math.abs(food.x - b.x) +
+      Math.abs(food.y - b.y);
 
-  }
+    return distA - distB;
+  });
+
+  // Escolhe melhor movimento
+  direction = safeMoves[0].dir;
 }
 
 // Controlando a direção com o teclado
