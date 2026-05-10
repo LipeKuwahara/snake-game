@@ -27,7 +27,7 @@ let speed = 100; // Velocidade inicial em milissegundos
 let game = setInterval(gameLoop, speed);
 let food = foodRandomPosition();
 
-let aiEnabled = true; // Integração IA
+let aiEnabled = false; // Integração IA
 
 function gameLoop() {
   update();
@@ -294,10 +294,41 @@ function aiMove() {
   direction = safeMoves[0].dir;
 }
 
-// Controlando a direção com o teclado
+// Função para botões
+function changeDirection(newDirection) {
+
+  if (newDirection === 'LEFT' && direction !== 'RIGHT') {
+    direction = 'LEFT';
+  }
+
+  if (newDirection === 'RIGHT' && direction !== 'LEFT') {
+    direction = 'RIGHT';
+  }
+
+  if (newDirection === 'UP' && direction !== 'DOWN') {
+    direction = 'UP';
+  }
+
+  if (newDirection === 'DOWN' && direction !== 'UP') {
+    direction = 'DOWN';
+  }
+}
+
 document.addEventListener('keydown', event => {
-  if (event.key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
-  if (event.key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
-  if (event.key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
-  if (event.key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+
+  if (event.key === 'ArrowLeft') {
+    changeDirection('LEFT');
+  }
+
+  if (event.key === 'ArrowRight') {
+    changeDirection('RIGHT');
+  }
+
+  if (event.key === 'ArrowUp') {
+    changeDirection('UP');
+  }
+
+  if (event.key === 'ArrowDown') {
+    changeDirection('DOWN');
+  }
 });
