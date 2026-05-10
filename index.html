@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jogo da Cobrinha</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #000;
-    }
-    canvas {
-      border: 1px solid #fff;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <canvas id="game" width="400" height="400"></canvas>
+  <div class="controls">
+    <button onclick="changeDirection('UP')">⬆️</button>
+
+    <div>
+      <button onclick="changeDirection('LEFT')">⬅️</button>
+      <button onclick="changeDirection('DOWN')">⬇️</button>
+      <button onclick="changeDirection('RIGHT')">➡️</button>
+    </div>
+  </div>
   <script src="script.js"></script>
 </body>
+
 </html>
