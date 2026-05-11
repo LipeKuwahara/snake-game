@@ -97,7 +97,7 @@ function drawBonusFood() {
 
 function drawScore() {
   ctx.fillStyle = 'white';
-  ctx.font = '10px Arial';
+  ctx.font = '20px Arial';
   ctx.fillText(`Score: ${score}`, 10, 20);
 }
 
