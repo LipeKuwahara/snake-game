@@ -27,7 +27,7 @@ let speed = 100; // Velocidade inicial em milissegundos
 let game = setInterval(gameLoop, speed);
 let food = foodRandomPosition();
 
-let aiEnabled = true; // Integração IA
+let aiEnabled = false; // Integração IA
 
 function gameLoop() {
   update();
